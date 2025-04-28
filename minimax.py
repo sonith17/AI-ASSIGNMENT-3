@@ -14,33 +14,44 @@ PIECE_VALUES = {
     chess.KING: 0
 }
 
-def evaluate(board):
+def evaluate(board,color):
     score = 0
     for square in chess.SQUARES:
         piece = board.piece_at(square)
         if piece:
             value = PIECE_VALUES[piece.piece_type]
-            score += value if piece.color == chess.WHITE else -value
-    score += 0.1 * len(list(board.legal_moves)) if board.turn == chess.WHITE else -0.1 * len(list(board.legal_moves))
+            score += value if piece.color == color else -value
+    score += 0.1 * len(list(board.legal_moves)) if board.turn == color else -0.1 * len(list(board.legal_moves))
     return score
 
-def minimax(board, depth, maximizing_player):
+def minimax(board, depth, maximizing_player,color=chess.WHITE):
     if depth == 0 or board.is_game_over():
-        return evaluate(board)
+        return evaluate(board,color)
     best = float('-inf') if maximizing_player else float('inf')
     for move in board.legal_moves:
         board.push(move)
-        eval = minimax(board, depth - 1, not maximizing_player)
+        eval = minimax(board, depth - 1, not maximizing_player,color)
         board.pop()
         best = max(best, eval) if maximizing_player else min(best, eval)
     return best
 
-def best_move(board, depth):
+def best_move(board, depth,color=chess.WHITE):
     best_eval = float('-inf')
     best_mv = None
     for move in board.legal_moves:
         board.push(move)
-        eval = minimax(board, depth - 1, False)
+
+        if board.is_checkmate():
+            print("Checkmate detected, skipping move.")
+            board.pop()
+            return move
+        
+        if board.is_stalemate():
+            board.pop()
+            print("Stalemate detected, skipping move.")
+            continue
+
+        eval = minimax(board, depth - 1, False,color)
         board.pop()
         if eval > best_eval:
             best_eval = eval
@@ -48,10 +59,10 @@ def best_move(board, depth):
     return best_mv
 
 def render_board_to_png(board):
-    svg_data = chess.svg.board(board=board, size=350)
+    svg_data = chess.svg.board(board=board, size=512)
     return cairosvg.svg2png(bytestring=svg_data.encode('utf-8'))
 
-def play_game(video_name="chess_game.mp4"):
+def play_game(video_name="chess_minimax.mp4"):
     env = gym.make("Chess-v0")
     obs = env.reset()
     board = env._board
@@ -64,9 +75,9 @@ def play_game(video_name="chess_game.mp4"):
         writer.append_data(imageio.v2.imread(png_bytes, format='png'))
 
         if board.turn == chess.WHITE:
-            move = best_move(board, 3)
+            move = best_move(board, 3, color=chess.WHITE)
         else:
-            move = list(board.legal_moves)[0]
+            move = best_move(board, 3, color=chess.BLACK)
 
         if move is None:
             break
@@ -76,6 +87,7 @@ def play_game(video_name="chess_game.mp4"):
         if board.is_game_over():
             png_bytes = render_board_to_png(board.copy())
             writer.append_data(imageio.v2.imread(png_bytes, format='png'))
+            print(env._board.result())
             break
 
     writer.close()
