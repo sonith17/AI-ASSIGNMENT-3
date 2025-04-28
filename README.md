@@ -9,14 +9,14 @@ PIECE_VALUES = {
     chess.KING: 0
 }
 
-def evaluate(board):
+def evaluate(board,color):
     score = 0
     for square in chess.SQUARES:
         piece = board.piece_at(square)
         if piece:
             value = PIECE_VALUES[piece.piece_type]
-            score += value if piece.color == chess.WHITE else -value
-    score += 0.1 * len(list(board.legal_moves)) if board.turn == chess.WHITE else -0.1 * len(list(board.legal_moves))
+            score += value if piece.color == color else -value
+    score += 0.1 * len(list(board.legal_moves)) if board.turn == color else -0.1 * len(list(board.legal_moves))
     return score
 ```
 

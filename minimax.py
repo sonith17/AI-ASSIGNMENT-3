@@ -62,10 +62,10 @@ def best_move(board, depth):
 
 
 def render_board_to_png(board):
-    svg_data = chess.svg.board(board=board, size=350)
+    svg_data = chess.svg.board(board=board, size=512)
     return cairosvg.svg2png(bytestring=svg_data.encode('utf-8'))
 
-def play_game(video_name="chess_game.mp4"):
+def play_game(video_name="chess_minimax.mp4"):
     env = gym.make("Chess-v0")
     obs = env.reset()
     board = env._board
@@ -92,6 +92,7 @@ def play_game(video_name="chess_game.mp4"):
         if board.is_game_over():
             png_bytes = render_board_to_png(board.copy())
             writer.append_data(imageio.v2.imread(png_bytes, format='png'))
+            print(env._board.result())
             break
 
     writer.close()
