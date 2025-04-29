@@ -108,7 +108,7 @@ def play_game(video_name="chess_minimax.mp4"):
     board = env._board
     done = False
 
-    writer = imageio.get_writer(video_name, fps=1)  # 1 frame per second
+    writer = imageio.get_writer(video_name, fps=1)  
 
     while not done:
         png_bytes = render_board_to_png(board.copy())
@@ -124,9 +124,10 @@ def play_game(video_name="chess_minimax.mp4"):
 
         obs, reward, done, info = env.step(move)
 
+        png_bytes = render_board_to_png(board.copy())
+        writer.append_data(imageio.v2.imread(png_bytes, format='png'))
+
         if board.is_game_over():
-            png_bytes = render_board_to_png(board.copy())
-            writer.append_data(imageio.v2.imread(png_bytes, format='png'))
             print(env._board.result())
             break
 
