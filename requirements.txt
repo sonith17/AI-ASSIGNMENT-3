@@ -3,8 +3,3 @@ gym==0.17.3
 gym_chess==0.1.1
 imageio==2.37.0
 python_chess==0.31.4
-
-
-original -> original + whitmove -> original + whitmove + black move  -> original + black move -> original
-
- W0 ->  W1 , B3 <- B2
