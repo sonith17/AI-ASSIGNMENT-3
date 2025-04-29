@@ -119,6 +119,17 @@ def best_move(board, depth):
 
     for move in order_moves(board):
         board.push(move)
+        
+        if board.is_checkmate():
+            print("Checkmate detected, skipping move.")
+            board.pop()
+            return move
+        
+        if board.is_stalemate():
+            board.pop()
+            print("Stalemate detected, skipping move.")
+            continue
+
         eval = alphabeta(board, depth - 1, alpha, beta, False, player_color)
         board.pop()
         if eval > best_eval:
@@ -128,7 +139,7 @@ def best_move(board, depth):
     return best_mv
 
 def render_board_to_png(board):
-    svg_data = chess.svg.board(board=board, size=350)
+    svg_data = chess.svg.board(board=board, size=512)
     return cairosvg.svg2png(bytestring=svg_data.encode('utf-8'))
 
 def play_game(video_name="chess_game_AlphaBeta.mp4"):
@@ -144,7 +155,7 @@ def play_game(video_name="chess_game_AlphaBeta.mp4"):
         writer.append_data(imageio.v2.imread(png_bytes, format='png'))
 
         if board.turn == chess.BLACK:
-            move = best_move(board, 2)  # Black searches 4-ply
+            move = best_move(board, 3)  # Black searches 4-ply
             print(f"Black move: {move}")
         else:
             move = best_move(board, 2)  # White searches 3-ply
@@ -154,10 +165,11 @@ def play_game(video_name="chess_game_AlphaBeta.mp4"):
             break
 
         obs, reward, done, info = env.step(move)
+        png_bytes = render_board_to_png(board.copy())
+        writer.append_data(imageio.v2.imread(png_bytes, format='png'))
 
         if board.is_game_over():
-            png_bytes = render_board_to_png(board.copy())
-            writer.append_data(imageio.v2.imread(png_bytes, format='png'))
+            print(env._board.result())
             break
 
     writer.close()
